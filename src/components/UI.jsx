@@ -1,37 +1,12 @@
 import { useEffect, useState } from "react";
 import { useChat } from "../hooks/useChat";
 import { LANG_ARRAY } from "../utils/lang_code";
-
-const downloadapi = "http://127.0.0.1:5000/report?uid=651ff734940dedb6ddd87cb3";
+import { UserButton } from "@clerk/clerk-react";
+import { ScaleLoader } from "react-spinners";
 
 export const UI = ({ hidden, ...props }) => {
   const { chat, loading, cameraZoomed, setCameraZoomed, message } = useChat();
   const [inputText, setInputText] = useState("");
-
-  const handlePdfDownload = async () => {
-    try {
-      const response = await fetch(downloadapi, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/pdf",
-        },
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "report.pdf";
-        a.click();
-        window.URL.revokeObjectURL(url);
-      } else {
-        console.error("Failed to download the PDF");
-      }
-    } catch (error) {
-      console.error("Error while downloading the PDF", error);
-    }
-  };
 
   useEffect(() => {
     if (inputText === "" || !props.botLang) return;
@@ -62,7 +37,7 @@ export const UI = ({ hidden, ...props }) => {
           <p>Your Personal Healthcare Assistant!</p>
         </div>
 
-        <div className="w-full flex flex-col items-end justify-center gap-4">
+        {/* <div className="w-full flex flex-col items-end justify-center gap-4">
           <button
             onClick={() => setCameraZoomed(!cameraZoomed)}
             className="pointer-events-auto bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md"
@@ -99,48 +74,36 @@ export const UI = ({ hidden, ...props }) => {
               </svg>
             )}
           </button>
-          <button
-            onClick={() => {
-              handlePdfDownload();
-            }}
-            className="pointer-events-auto bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md"
-          >
-            <img src="pdf.svg" width={24} height={24} />
-          </button>
-        </div>
+        </div>  */}
         <div className="flex items-center gap-2 pointer-events-auto max-w-screen-lg w-full mx-auto">
-          <div className="w-full placeholder:text-gray-800 placeholder:italic p-4 rounded-md bg-opacity-50 bg-white backdrop-blur-md">
-            {inputText == "" ? "Press mic to start conversation" : inputText}
+          <div className="mt-6 mx-auto w-full max-w-sm">
+            <button
+              onClick={props.connected? props.logOut : props.startCallInline}
+              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-pink-500 hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500"
+            >
+              {props.connecting ? (
+                <ScaleLoader
+                  color="#fff"
+                  height={20}
+                  width={3}
+                  margin={0.5}
+                  loading={true}
+                />
+              ) : (
+                <>{props.connected ? "End" : "Start"}</>
+              )}
+            </button>
           </div>
-          <button
-            disabled={loading || message}
-            onClick={listenAudio}
-            className={`bg-pink-500 hover:bg-pink-600 text-white p-4 px-10 font-semibold uppercase rounded-md ${
-              loading || message ? "cursor-not-allowed opacity-30" : ""
-            }`}
-          >
-            <img src="microphone.svg" width={30} height={30} />
-          </button>
-          <button
-            className="absolute top-2 right-2 bg-pink-500 text-white p-2 rounded "
-            onClick={props.logOut}
-          >
-            Sign out
-          </button>
-          <select
-            name="lang"
-            id="lang"
-            disabled={loading}
-            value={props.botLang}
-            onChange={props.handleChange}
-            className="cursor-pointer rounded p-4 placeholder:text-gray-800 placeholder:italic bg-opacity-50 bg-white backdrop-blur-md"
-          >
-            {LANG_ARRAY.map((lang) => (
-              <option key={lang.language_code} value={lang.language_code}>
-                {lang.language}
-              </option>
-            ))}
-          </select>
+          <div className="absolute top-5 right-5">
+            <UserButton 
+            appearance={{
+              elements:{
+                userButtonAvatarBox: "h-10 w-10",
+                userButtonPopoverFooter: "hidden",
+              }
+            }}
+            />
+          </div>
         </div>
       </div>
     </>
